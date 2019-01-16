@@ -29,9 +29,14 @@ namespace Mozkomor.GrinGoldMinerCLI
                 var cudas = System.Diagnostics.Process.GetProcessesByName("CudaSolver");
                 var ocls = System.Diagnostics.Process.GetProcessesByName("OclSolver");
 
-                if (cudas.Count() > 0 ||ocls.Count() > 0)
+                if (cudas.Count() > 0 )
                 {
-                    Console.WriteLine("Existing CudaSolver or OclSolver processes running, please terminate them first.");
+                    Console.WriteLine("Existing CudaSolver processes running, please terminate them first.");
+                    Console.ReadKey();
+                }
+                if (ocls.Count() > 0 )
+                {
+                    Console.WriteLine("Existing OclSolver processes running, please terminate them first.");
                     Console.ReadKey();
                 }
             }

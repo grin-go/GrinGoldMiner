@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -273,12 +274,16 @@ namespace Mozkomor.GrinGoldMiner
 #else
                 TcpListener l = new TcpListener(IPAddress.Parse("127.0.0.1"), workerCommPort);
 #endif
+                
+                string currentProcessPath=System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                string solversPath = Path.Combine(currentProcessPath, "solvers");
+               
                 l.Start();
                 worker = Process.Start(new ProcessStartInfo()
                 {
                     FileName = (IsLinux ?
                           ((type == WorkerType.NVIDIA) ? "CudaSolver" : "OclSolver")
-                        : (type == WorkerType.NVIDIA) ? Path.Combine("solvers", "CudaSolver.exe") : Path.Combine("solvers", "OclSolver.exe")),
+                        : (type == WorkerType.NVIDIA) ? Path.Combine(solversPath, "CudaSolver.exe") : Path.Combine(solversPath, "OclSolver.exe")),
                     Arguments = string.Format("{0} {1} {2} {3}", workerDeviceID, workerCommPort, workerPlatformID, config.GPUOptions.Count),
                     CreateNoWindow = true,
                     UseShellExecute = false
