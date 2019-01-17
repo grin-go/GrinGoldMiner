@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrinGoldMinerCLI", "GrinGol
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cudacka10", "Cudacka10\Cudacka10.vcxproj", "{738AD549-2DDC-4F13-99CC-761DA6135660}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenClTest", "OpenClTest\OpenClTest.csproj", "{A7893E86-91FD-4D5E-A4F8-E727BFD84E3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +110,14 @@ Global
 		{738AD549-2DDC-4F13-99CC-761DA6135660}.Release|Any CPU.ActiveCfg = Release|x64
 		{738AD549-2DDC-4F13-99CC-761DA6135660}.Release|x64.ActiveCfg = Release|x64
 		{738AD549-2DDC-4F13-99CC-761DA6135660}.Release|x64.Build.0 = Release|x64
+		{A7893E86-91FD-4D5E-A4F8-E727BFD84E3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7893E86-91FD-4D5E-A4F8-E727BFD84E3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7893E86-91FD-4D5E-A4F8-E727BFD84E3E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A7893E86-91FD-4D5E-A4F8-E727BFD84E3E}.Debug|x64.Build.0 = Debug|Any CPU
+		{A7893E86-91FD-4D5E-A4F8-E727BFD84E3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7893E86-91FD-4D5E-A4F8-E727BFD84E3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7893E86-91FD-4D5E-A4F8-E727BFD84E3E}.Release|x64.ActiveCfg = Release|Any CPU
+		{A7893E86-91FD-4D5E-A4F8-E727BFD84E3E}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

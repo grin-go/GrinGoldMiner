@@ -26,12 +26,13 @@ namespace OclSolver
 
     class Program
     {
+        const int LOCAL_SIZE = 128;
+        const int GLOBAL_SIZE = 8 * LOCAL_SIZE;
         const long DUCK_SIZE_A = 129; // AMD 126 + 3
         const long DUCK_SIZE_B = 83;
-        const long BUFFER_SIZE_A1 = DUCK_SIZE_A * 1024 * (4096 - 128) * 2;
-        const long BUFFER_SIZE_A2 = DUCK_SIZE_A * 1024 * 256 * 2;
-        const long BUFFER_SIZE_B = DUCK_SIZE_B * 1024 * 4096 * 2;
-        const long BUFFER_SIZE_U32 = (DUCK_SIZE_A + DUCK_SIZE_B) * 1024 * 4096 * 2;
+        const long BUFFER_SIZE_A1 = DUCK_SIZE_A * GLOBAL_SIZE * (4096 - LOCAL_SIZE);
+        const long BUFFER_SIZE_A2 = DUCK_SIZE_A * GLOBAL_SIZE * 256 * 2;
+        const long BUFFER_SIZE_B = DUCK_SIZE_B * GLOBAL_SIZE * 4096 * 2;
 
         const long INDEX_SIZE = 256 * 256 * 4;
 
@@ -49,8 +50,6 @@ namespace OclSolver
         static MemoryBuffer bufferI2;
         static MemoryBuffer bufferR;
 
-        static UInt32[] h_indexesA = new UInt32[INDEX_SIZE];
-        static UInt32[] h_indexesB = new UInt32[INDEX_SIZE];
 
         static Job currentJob;
         static Job nextJob;
@@ -220,7 +219,7 @@ namespace OclSolver
                 }
 
                 var assembly = Assembly.GetEntryAssembly();
-                var resourceStream = assembly.GetManifestResourceStream("OclSolver.kernel.cl");
+                var resourceStream = assembly.GetManifestResourceStream("OclSolver.kernel.c");
                 using (StreamReader reader = new StreamReader(resourceStream))
                 {
                     using (Context context = Context.CreateContext(chosenDevice))
@@ -252,7 +251,7 @@ namespace OclSolver
                                         bufferI1 = context.CreateBuffer<uint>(MemoryFlag.ReadWrite, INDEX_SIZE);
                                         bufferI2 = context.CreateBuffer<uint>(MemoryFlag.ReadWrite, INDEX_SIZE);
 
-                                        bufferR = context.CreateBuffer<uint>(MemoryFlag.ReadOnly, 42 * 2);
+                                        bufferR = context.CreateBuffer<uint>(MemoryFlag.ReadOnly, 42 );
                                     }
                                     catch (Exception ex)
                                     {
@@ -290,7 +289,7 @@ namespace OclSolver
                                         kernelRecovery.SetKernelArgumentGeneric(3, currentJob.k3); //v3i
                                         kernelRecovery.SetKernelArgument(4, bufferR); //* recovery
                                         kernelRecovery.SetKernelArgument(5, bufferI2); //* indexes
-                                        
+
                                         //FluffySeed2B
                                         kernelSeedB1.SetKernelArgument(0, bufferA1); //* source
                                         kernelSeedB1.SetKernelArgument(1, bufferA1); //* destination1
@@ -342,7 +341,6 @@ namespace OclSolver
                                         kernelTail.SetKernelArgument(3, bufferI2); //* destinationIndexes
 
 
-
                                         int loopCnt = 0;
                                         //for (int i = 0; i < runs; i++)
                                         while (!Comms.IsTerminated)
@@ -353,7 +351,7 @@ namespace OclSolver
                                                               Comms.nextJob.pre_pow == TestPrePow))
                                                 {
                                                     Logger.Log(LogLevel.Info, string.Format("Waiting for job...."));
-                                                    Task.Delay(1000).Wait();
+                                                    Task.Delay(100).Wait();
                                                     continue;
                                                 }
 
@@ -364,11 +362,11 @@ namespace OclSolver
                                                     currentJob.timestamp = DateTime.Now;
                                                 }
 
-                                                if (!TEST && (currentJob.timestamp.AddMinutes(30) < DateTime.Now) &&
-                                                    Comms.lastIncoming.AddMinutes(30) < DateTime.Now)
+                                                if (!TEST && (currentJob.timestamp.AddMinutes(3) < DateTime.Now) &&
+                                                    Comms.lastIncoming.AddMinutes(3) < DateTime.Now)
                                                 {
                                                     Logger.Log(LogLevel.Info, string.Format("Job too old..."));
-                                                    Task.Delay(1000).Wait();
+                                                    Task.Delay(100).Wait();
                                                     continue;
                                                 }
 
@@ -418,34 +416,37 @@ namespace OclSolver
 
                                                 commandQueue.EnqueueClearBuffer(bufferI2, 64 * 64 * 4, clearPattern);
                                                 commandQueue.EnqueueClearBuffer(bufferI1, 64 * 64 * 4, clearPattern);
-                                                commandQueue.EnqueueNDRangeKernel(kernelSeedA, 1, 2048 * 128, 128, 0);
-                                                commandQueue.EnqueueNDRangeKernel(kernelSeedB1, 1, 1024 * 128, 128, 0);
-                                                commandQueue.EnqueueNDRangeKernel(kernelSeedB2, 1, 1024 * 128, 128, 0);
+                                                commandQueue.EnqueueNDRangeKernel(kernelSeedA, 1, 2048 * LOCAL_SIZE, 128,
+                                                    0); 
+                                                commandQueue.EnqueueNDRangeKernel(kernelSeedB1, 1, 1024 * LOCAL_SIZE, 128,
+                                                    0); 
+                                                commandQueue.EnqueueNDRangeKernel(kernelSeedB2, 1, 1024 * LOCAL_SIZE, 128,
+                                                    0); 
                                                 commandQueue.EnqueueClearBuffer(bufferI1, 64 * 64 * 4, clearPattern);
-                                                commandQueue.EnqueueNDRangeKernel(kernelRound1, 1, 4096 * 1024, 1024,
+                                                commandQueue.EnqueueNDRangeKernel(kernelRound1, 1, 4096 * GLOBAL_SIZE, 1024,
                                                     0);
 
                                                 commandQueue.EnqueueClearBuffer(bufferI2, 64 * 64 * 4, clearPattern);
-                                                commandQueue.EnqueueNDRangeKernel(kernelRoundO, 1, 4096 * 1024, 1024,
-                                                    0);
+                                                commandQueue.EnqueueNDRangeKernel(kernelRoundO, 1, 4096 * GLOBAL_SIZE, 1024,
+                                                    0); 
                                                 commandQueue.EnqueueClearBuffer(bufferI1, 64 * 64 * 4, clearPattern);
-                                                commandQueue.EnqueueNDRangeKernel(kernelRoundNB, 1, 4096 * 1024, 1024,
+                                                commandQueue.EnqueueNDRangeKernel(kernelRoundNB, 1, 4096 * GLOBAL_SIZE, 1024,
                                                     0);
 
                                                 for (int r = 0; r < trimRounds; r++)
                                                 {
                                                     commandQueue.EnqueueClearBuffer(bufferI2, 64 * 64 * 4,
                                                         clearPattern);
-                                                    commandQueue.EnqueueNDRangeKernel(kernelRoundNA, 1, 4096 * 1024,
+                                                    commandQueue.EnqueueNDRangeKernel(kernelRoundNA, 1, 4096 * GLOBAL_SIZE,
                                                         1024, 0);
                                                     commandQueue.EnqueueClearBuffer(bufferI1, 64 * 64 * 4,
                                                         clearPattern);
-                                                    commandQueue.EnqueueNDRangeKernel(kernelRoundNB, 1, 4096 * 1024,
+                                                    commandQueue.EnqueueNDRangeKernel(kernelRoundNB, 1, 4096 * GLOBAL_SIZE,
                                                         1024, 0);
                                                 }
 
                                                 commandQueue.EnqueueClearBuffer(bufferI2, 64 * 64 * 4, clearPattern);
-                                                commandQueue.EnqueueNDRangeKernel(kernelTail, 1, 4096 * 1024, 1024, 0);
+                                                commandQueue.EnqueueNDRangeKernel(kernelTail, 1, 4096 * GLOBAL_SIZE, 1024, 0);
 
                                                 edgesCount = commandQueue.EnqueueReadBuffer<uint>(bufferI2, 1);
                                                 edgesCount[0] = edgesCount[0] > 1000000 ? 1000000 : edgesCount[0];

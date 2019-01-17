@@ -14,6 +14,7 @@ typedef u32 node_t;
 typedef u64 nonce_t;
 
 
+#define LOCAL_SIZE 122
 #define DUCK_SIZE_A 129L
 #define DUCK_SIZE_B 83L
 
@@ -70,8 +71,8 @@ bool Read2bCounter(__local u32 * ecounters, const int bucket)
 __attribute__((reqd_work_group_size(128, 1, 1)))
 __kernel  void FluffySeed2A(const u64 v0i, const u64 v1i, const u64 v2i, const u64 v3i, __global ulong4 * bufferA, __global ulong4 * bufferB, __global u32 * indexes)
 {
-	const int gid = get_global_id(0);
-	const short lid = get_local_id(0);
+	const int gid = get_global_id(0);//group identifier
+	const short lid = get_local_id(0);//internal group process ID
 
 	__global ulong4 * buffer;
 	__local u64 tmp[64][16];
